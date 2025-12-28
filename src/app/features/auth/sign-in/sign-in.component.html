@@ -1,0 +1,32 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Sign In</h2>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" formControlName="email" placeholder="your@email.com" />
+        <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched" class="error">
+          <span *ngIf="form.get('email')?.errors?.['required']">Email is required</span>
+          <span *ngIf="form.get('email')?.errors?.['email']">Invalid email</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" placeholder="Your password" />
+        <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="error">
+          <span *ngIf="form.get('password')?.errors?.['required']">Password is required</span>
+          <span *ngIf="form.get('password')?.errors?.['minlength']">Min 6 characters</span>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="error">{{ error }}</div>
+
+      <button type="submit" [disabled]="form.invalid || loading" class="btn">
+        {{ loading ? 'Loading...' : 'Sign In' }}
+      </button>
+    </form>
+
+    <p class="link">Don't have an account? <a routerLink="/sign-up">Sign Up</a></p>
+  </div>
+</div>

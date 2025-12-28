@@ -1,0 +1,121 @@
+<div class="project-container">
+  <header class="project-header">
+    <div class="header-top">
+      <button (click)="goBack()" class="btn-back">← Back</button>
+      <h1>Project Details</h1>
+      <div class="header-actions">
+        <button 
+          *ngIf="!project?.isArchive" 
+          (click)="archiveProject()" 
+          class="btn-secondary">
+          Archive
+        </button>
+        <button 
+          *ngIf="project?.isArchive" 
+          (click)="unarchiveProject()" 
+          class="btn-secondary">
+          Unarchive
+        </button>
+        <button (click)="deleteProject()" class="btn-danger">Delete</button>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <div *ngIf="loading" class="loading">Loading project...</div>
+
+  <div *ngIf="!loading && project" class="project-content">
+    <section class="project-info">
+      <div *ngIf="!editingProject" class="info-display">
+        <h2>{{ project.name }}</h2>
+        <p *ngIf="project.description" class="description">{{ project.description }}</p>
+        <div class="meta">
+          <span>Owner: {{ project.ownerName }}</span>
+          <span>Notes: {{ project.noteCount }}</span>
+          <span *ngIf="project.isArchive" class="badge-archived">Archived</span>
+        </div>
+        <button (click)="toggleEditForm()" class="btn-primary">Edit Project</button>
+      </div>
+
+      <div *ngIf="editingProject" class="edit-form">
+        <h3>Edit Project</h3>
+        <form [formGroup]="editForm" (ngSubmit)="updateProject()">
+          <div class="form-group">
+            <label for="edit-name">Project Name</label>
+            <input type="text" id="edit-name" formControlName="name" />
+          </div>
+          <div class="form-group">
+            <label for="edit-description">Description</label>
+            <textarea id="edit-description" formControlName="description"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Save</button>
+            <button type="button" (click)="toggleEditForm()" class="btn-secondary">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="notes-section">
+      <div class="notes-header">
+        <h3>Notes</h3>
+        <button (click)="toggleCreateNoteForm()" class="btn-primary">
+          {{ showCreateNoteForm ? '✕ Cancel' : '+ New Note' }}
+        </button>
+      </div>
+
+      <div *ngIf="showCreateNoteForm" class="create-note-form">
+        <form [formGroup]="createNoteForm" (ngSubmit)="createNote()">
+          <div class="form-group">
+            <label for="note-title">Note Title</label>
+            <input type="text" id="note-title" formControlName="title" placeholder="Note title" />
+          </div>
+          <div class="form-group">
+            <label for="note-content">Content</label>
+            <textarea id="note-content" formControlName="content" placeholder="Note content" rows="5"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="note-labels">Labels (comma-separated)</label>
+            <input type="text" id="note-labels" formControlName="labels" placeholder="bug, feature, important" />
+          </div>
+          <div class="form-group checkbox">
+            <input type="checkbox" id="note-pinned" formControlName="pinned" />
+            <label for="note-pinned">Pin this note</label>
+          </div>
+          <div class="form-group">
+            <label for="note-visibility">Visibility</label>
+            <select id="note-visibility" formControlName="visibility">
+              <option value="PRIVATE">Private</option>
+              <option value="SHARED">Shared</option>
+              <option value="PUBLIC">Public</option>
+            </select>
+          </div>
+          <button type="submit" [disabled]="createNoteForm.invalid" class="btn-primary">Create Note</button>
+        </form>
+      </div>
+
+      <div *ngIf="notes.length === 0" class="no-notes">
+        <p>No notes yet. Create one to get started!</p>
+      </div>
+
+      <div *ngIf="notes.length > 0" class="notes-list">
+        <div *ngFor="let note of notes" class="note-card">
+          <div class="note-header">
+            <h4>{{ note.title }}</h4>
+            <div class="note-actions">
+              <span *ngIf="note.pinned" class="badge-pinned">📌 Pinned</span>
+              <span class="badge-visibility">{{ note.visibility }}</span>
+              <button (click)="deleteNote(note.id)" class="btn-delete">✕</button>
+            </div>
+          </div>
+          <p *ngIf="note.content" class="note-content">{{ note.content }}</p>
+          <div *ngIf="note.labels.length > 0" class="labels">
+            <span *ngFor="let label of note.labels" class="label">{{ label }}</span>
+          </div>
+          <small class="note-timestamp">{{ note.updatedAt | date: 'short' }}</small>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
