@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Apollo } from 'apollo-angular';
-import { GET_PROJECT_NOTES } from '../../../graphql/project.queries';
+import { GET_PROJECT } from '../../../graphql/project.queries';
 import {
   UPDATE_PROJECT,
   CREATE_NOTE,
@@ -31,6 +31,9 @@ interface Project {
   ownerName: string;
   isArchive: boolean;
   noteCount: number;
+  createdDate?: string;
+  modifiedDate?: string;
+  notes?: Note[];
 }
 
 @Component({
@@ -57,6 +60,7 @@ export class ProjectComponent implements OnInit {
     private apollo: Apollo,
     private fb: FormBuilder
   ) {
+    console.log('ProjectComponent: constructor');
     this.editForm = this.fb.group({
       name: ['', [Validators.required]],
       description: ['']
@@ -67,35 +71,57 @@ export class ProjectComponent implements OnInit {
       content: [''],
       labels: [''],
       pinned: [false],
-      visibility: ['PRIVATE']
+      visibility: ['private']
     });
   }
 
   ngOnInit(): void {
+    console.log('ProjectComponent: ngOnInit start');
     this.projectId = this.route.snapshot.paramMap.get('id') || '';
-    this.loadProjectNotes();
+    console.log('ProjectComponent: route id=', this.projectId);
+    this.loading = true;
+    this.loadProject();
   }
 
-  loadProjectNotes(): void {
-    this.loading = true;
-    this.apollo.query<{ getProjectsNotes: Note[] }>({
-      query: GET_PROJECT_NOTES,
-      variables: { projectId: this.projectId }
+  loadProject(): void {
+    this.apollo.query<{ getProject: Project }>({
+      query: GET_PROJECT,
+      variables: { projectId: this.projectId },
+      fetchPolicy: 'network-only'
     }).subscribe({
-      next: (result) => {
-        this.notes = result.data.getProjectsNotes;
+      next: (res) => {
+        console.log('Project loaded:', res);
+        if (!res.data || !res.data.getProject) {
+          this.error = 'Project not found or API structure mismatch';
+          this.loading = false;
+          return;
+        }
+        this.project = res.data.getProject;
+        if (this.project?.notes) {
+          this.notes = this.project.notes;
+        }
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading notes:', err);
+        console.error('Error loading project:', err);
+        this.error = 'Failed to load project details';
         this.loading = false;
-        this.error = 'Failed to load project notes';
       }
     });
   }
 
+  loadProjectNotes(): void {
+    // Notes are now loaded as part of the project query
+  }
+
   toggleEditForm(): void {
     this.editingProject = !this.editingProject;
+    if (this.editingProject && this.project) {
+      this.editForm.patchValue({
+        name: this.project.name,
+        description: this.project.description || ''
+      });
+    }
   }
 
   updateProject(): void {
@@ -114,6 +140,7 @@ export class ProjectComponent implements OnInit {
         if (result.data?.updateProject) {
           this.project = result.data.updateProject;
           this.editingProject = false;
+          this.error = null;
         }
       },
       error: (err) => {
@@ -147,9 +174,10 @@ export class ProjectComponent implements OnInit {
     }).subscribe({
       next: (result) => {
         if (result.data?.createNote) {
-          this.notes.push(result.data.createNote);
+          this.notes = [...this.notes, result.data.createNote];
           this.createNoteForm.reset();
           this.showCreateNoteForm = false;
+          this.error = null;
         }
       },
       error: (err) => {
@@ -167,6 +195,7 @@ export class ProjectComponent implements OnInit {
       }).subscribe({
         next: () => {
           this.notes = this.notes.filter(n => n.id !== noteId);
+          this.error = null;
         },
         error: (err) => {
           console.error('Error deleting note:', err);
@@ -194,35 +223,57 @@ export class ProjectComponent implements OnInit {
   }
 
   archiveProject(): void {
+    if (this.project) {
+      this.project = { ...this.project, isArchive: true }; // optimistic update
+    }
+
     this.apollo.mutate({
       mutation: ARCHIVE_PROJECT,
-      variables: { projectId: this.projectId }
+      variables: { projectId: this.projectId },
+      optimisticResponse: {
+        archiveProject: {
+          __typename: 'Project',
+          id: this.projectId,
+          isArchive: true
+        }
+      }
     }).subscribe({
       next: () => {
-        if (this.project) {
-          this.project.isArchive = true;
-        }
+        this.error = null;
+        this.loadProject();
       },
       error: (err) => {
         console.error('Error archiving project:', err);
         this.error = 'Failed to archive project';
+        this.loadProject();
       }
     });
   }
 
   unarchiveProject(): void {
+    if (this.project) {
+      this.project = { ...this.project, isArchive: false }; // optimistic update
+    }
+
     this.apollo.mutate({
       mutation: UNARCHIVE_PROJECT,
-      variables: { projectId: this.projectId }
+      variables: { projectId: this.projectId },
+      optimisticResponse: {
+        unarchiveProject: {
+          __typename: 'Project',
+          id: this.projectId,
+          isArchive: false
+        }
+      }
     }).subscribe({
       next: () => {
-        if (this.project) {
-          this.project.isArchive = false;
-        }
+        this.error = null;
+        this.loadProject();
       },
       error: (err) => {
         console.error('Error unarchiving project:', err);
         this.error = 'Failed to unarchive project';
+        this.loadProject();
       }
     });
   }

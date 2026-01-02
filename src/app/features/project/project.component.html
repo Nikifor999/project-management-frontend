@@ -33,6 +33,9 @@
         <div class="meta">
           <span>Owner: {{ project.ownerName }}</span>
           <span>Notes: {{ project.noteCount }}</span>
+          <span>Created: {{ project.createdDate | date: 'short' }}</span>
+          <span *ngIf="project.modifiedDate && project.modifiedDate !== project.createdDate">Last modified: {{ project.modifiedDate | date: 'short' }}</span>
+          <span *ngIf="project.modifiedDate && project.modifiedDate === project.createdDate">Last modified: haven't been modified since creation</span>
           <span *ngIf="project.isArchive" class="badge-archived">Archived</span>
         </div>
         <button (click)="toggleEditForm()" class="btn-primary">Edit Project</button>
@@ -86,9 +89,9 @@
           <div class="form-group">
             <label for="note-visibility">Visibility</label>
             <select id="note-visibility" formControlName="visibility">
-              <option value="PRIVATE">Private</option>
-              <option value="SHARED">Shared</option>
-              <option value="PUBLIC">Public</option>
+              <option value="private">Private</option>
+              <option value="shared">Shared</option>
+              <option value="public">Public</option>
             </select>
           </div>
           <button type="submit" [disabled]="createNoteForm.invalid" class="btn-primary">Create Note</button>

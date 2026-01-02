@@ -38,13 +38,19 @@ export const REMOVE_PROJECT = gql`
 
 export const ARCHIVE_PROJECT = gql`
   mutation ArchiveProject($projectId: String!) {
-    archiveProject(projectId: $projectId)
+    archiveProject(projectId: $projectId){
+      id
+      isArchive
+    }
   }
 `;
 
 export const UNARCHIVE_PROJECT = gql`
   mutation UnarchiveProject($projectId: String!) {
-    unarchiveProject(projectId: $projectId)
+    unarchiveProject(projectId: $projectId){
+      id
+      isArchive
+    }
   }
 `;
 
