@@ -1,0 +1,16 @@
+.search {
+  .search-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .muted {
+    color: #666;
+    font-size: 0.9em;
+  }
+
+  .error {
+    color: red;
+  }
+}

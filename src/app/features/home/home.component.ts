@@ -30,6 +30,7 @@ export class HomeComponent implements OnInit {
   showCreateForm = false;
   createForm: FormGroup;
   error: string | null = null;
+  queryControl = this.fb.control('');
 
   constructor(
     private apollo: Apollo,
@@ -88,7 +89,7 @@ export class HomeComponent implements OnInit {
     }).subscribe({
       next: (result) => {
         if (result.data?.createProject) {
-          this.projects.push(result.data.createProject);
+          this.projects = [...this.projects, result.data.createProject];
           this.createForm.reset();
           this.showCreateForm = false;
         }
@@ -103,5 +104,11 @@ export class HomeComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/sign-in']);
+  }
+
+  onSearch(): void {
+    const q = this.queryControl.value?.trim();
+    if (!q || q.length < 3) return;
+    this.router.navigate(['/search'], { queryParams: { q } });
   }
 }

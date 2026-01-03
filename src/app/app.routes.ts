@@ -21,6 +21,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/project/project.component').then(m => m.ProjectComponent)
   },
   {
+    path: 'search',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./features/search/search.component').then(m => m.SearchComponent)
+  },
+  {
     path: '',
     redirectTo: '/home',
     pathMatch: 'full'

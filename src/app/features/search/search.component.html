@@ -1,0 +1,24 @@
+<div class="search">
+  <form (ngSubmit)="onSearch()" class="search-form">
+    <input [formControl]="queryControl" placeholder="Search (min 3 chars)" />
+    <button type="submit">Search</button>
+  </form>
+
+  <div *ngIf="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{error}}</div>
+
+  <ul *ngIf="results.length">
+    <li *ngFor="let r of results">
+      <ng-container [ngSwitch]="r.__typename">
+        <div *ngSwitchCase="'Project'">
+          <strong>Project:</strong>
+          <a (click)="openProject(r.id)">{{r.name}}</a>
+          <span class="muted"> — {{r.description}}</span>
+        </div>
+        <div *ngSwitchCase="'Note'">
+          <strong>Note:</strong> {{r.title}} <small>({{r.projectId}})</small>
+        </div>
+      </ng-container>
+    </li>
+  </ul>
+</div>

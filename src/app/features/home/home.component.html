@@ -2,6 +2,10 @@
   <header class="navbar">
     <div class="navbar-content">
       <h1>Project Manager</h1>
+      <form (ngSubmit)="onSearch()" class="search-form">
+        <input [formControl]="queryControl" (keydown.enter)="onSearch()" placeholder="Search projects and notes (min 3 chars)" />
+        <button type="button" (click)="onSearch()">Search</button>
+      </form>
       <button (click)="logout()" class="btn-logout">Logout</button>
     </div>
   </header>

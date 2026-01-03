@@ -1,3 +1,30 @@
 :host {
   display: block;
 }
+
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 12px 0;
+
+  .container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    width: 100%;
+  }
+
+  .logo {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .left { flex: 0 0 auto; }
+  .center { flex: 1 1 auto; display:flex; justify-content:center }
+  .right { flex: 0 0 auto; }
+
+  .search-form { display:flex; gap:8px; align-items:center }
+  .search-form input { padding:6px 8px; min-width:360px }
+  .logout { background:#d9534f; color:white; border:none; padding:8px 12px; border-radius:6px }
+}
