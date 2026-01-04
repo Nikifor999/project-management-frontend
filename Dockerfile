@@ -1,17 +1,13 @@
-FROM node:18-alpine AS builder
+# Dockerfile.dev
+FROM node:18-alpine
+
 WORKDIR /app
 
-# Install dependencies
 COPY package.json package-lock.json ./
-RUN npm ci --silent
+RUN npm install
 
-# Build application
 COPY . .
-RUN npm run build -- --configuration production
 
-# Serve with nginx
-FROM nginx:1.25-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist/project-management-frontend /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 4200
+
+CMD ["npm", "start", "--", "--host", "0.0.0.0", "--poll", "2000"]

@@ -5,9 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: frontend_app
+    container_name: frontend
     ports:
-      - "4200:80"
+      - "4200:4200"
+    volumes:
+      - .:/app:delegated
+      - /app/node_modules
     environment:
-      - NODE_ENV=production
+      - CHOKIDAR_USEPOLLING=true
+    command: npm start
     restart: unless-stopped
