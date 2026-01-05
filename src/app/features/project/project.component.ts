@@ -8,6 +8,7 @@ import {
   UPDATE_PROJECT,
   CREATE_NOTE,
   REMOVE_NOTE,
+  UPDATE_NOTE,
   REMOVE_PROJECT,
   ARCHIVE_PROJECT,
   UNARCHIVE_PROJECT
@@ -47,6 +48,8 @@ export class ProjectComponent implements OnInit {
   projectId: string = '';
   project: Project | null = null;
   notes: Note[] = [];
+  editingNoteId: string | null = null;
+  editNoteForm: FormGroup;
   loading = false;
   editingProject = false;
   editForm: FormGroup;
@@ -67,6 +70,14 @@ export class ProjectComponent implements OnInit {
     });
 
     this.createNoteForm = this.fb.group({
+      title: ['', [Validators.required]],
+      content: [''],
+      labels: [''],
+      pinned: [false],
+      visibility: ['private']
+    });
+
+    this.editNoteForm = this.fb.group({
       title: ['', [Validators.required]],
       content: [''],
       labels: [''],
@@ -203,6 +214,50 @@ export class ProjectComponent implements OnInit {
         }
       });
     }
+  }
+
+  startEditNote(note: Note): void {
+    this.editingNoteId = note.id;
+    this.editNoteForm.patchValue({
+      title: note.title,
+      content: note.content || '',
+      labels: note.labels ? note.labels.join(', ') : '',
+      pinned: note.pinned,
+      visibility: note.visibility || 'private'
+    });
+  }
+
+  cancelEditNote(): void {
+    this.editingNoteId = null;
+    this.editNoteForm.reset();
+  }
+
+  saveNoteUpdate(): void {
+    if (!this.editingNoteId || this.editNoteForm.invalid) {
+      return;
+    }
+
+    const noteInput = {
+      ...this.editNoteForm.value,
+      labels: this.editNoteForm.value.labels.split(',').map((l: string) => l.trim()).filter((l: string) => l)
+    };
+
+    this.apollo.mutate<{ updateNote: Note }>({
+      mutation: UPDATE_NOTE,
+      variables: { noteId: this.editingNoteId, input: noteInput }
+    }).subscribe({
+      next: (result) => {
+        if (result.data?.updateNote) {
+          this.notes = this.notes.map(n => n.id === this.editingNoteId ? result.data!.updateNote : n);
+          this.cancelEditNote();
+          this.error = null;
+        }
+      },
+      error: (err) => {
+        console.error('Error updating note:', err);
+        this.error = 'Failed to update note';
+      }
+    });
   }
 
   deleteProject(): void {

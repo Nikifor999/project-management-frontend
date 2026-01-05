@@ -69,6 +69,21 @@ export const CREATE_NOTE = gql`
   }
 `;
 
+export const UPDATE_NOTE = gql`
+  mutation UpdateNote($noteId: String!, $input: UpdateNoteInput!) {
+    updateNote(noteId: $noteId, input: $input) {
+      id
+      title
+      content
+      labels
+      pinned
+      visibility
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const REMOVE_NOTE = gql`
   mutation RemoveNote($noteId: String!) {
     removeNote(noteId: $noteId)
